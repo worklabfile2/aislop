@@ -374,11 +374,14 @@
     } catch (e) { console.error("Load error"); }
   }
 
+  let dashboardMode = null;
+
   function switchMode(mode) {
     document.getElementById('sectionSearch').classList.toggle('active', mode === 'search');
     document.getElementById('sectionCustom').classList.toggle('active', mode === 'custom');
     document.getElementById('tabSearch').classList.toggle('active', mode === 'search');
     document.getElementById('tabCustom').classList.toggle('active', mode === 'custom');
+    document.getElementById('uniDashboard').style.display = dashboardMode === mode ? 'block' : 'none';
   }
 
   const searchInput = document.getElementById('uniSearch');
@@ -448,6 +451,7 @@
 
   function renderDashboard(uni, subtitle) {
     if (!uni) return;
+    dashboardMode = subtitle === "РЕЗУЛЬТАТ СИМУЛЯЦИИ" ? 'custom' : 'search';
     document.getElementById('uniDashboard').style.display = 'block';
 
     // Название
@@ -594,6 +598,8 @@
 
     function renderCards(measures) {
       status.innerHTML = '';
+      const fLabels = {F1:'Исследования',F2:'Приём',F3:'Международность',F4:'Финансы',F5:'Акад. глубина'};
+      const deF = s => (s||'').replace(/\bF([1-5])\b/g, (_,n) => fLabels['F'+n]||'F'+n);
       container.innerHTML = '';
       measures.slice(0, 3).forEach((m, i) => {
         const fKey = (m.focus || '').replace(/[^F1-5]/g, '') || 'F1';
@@ -603,10 +609,10 @@
         const cls = mVal < 4 ? 'priority-high' : mVal < 7 ? 'priority-mid' : 'priority-ok';
         container.innerHTML += `
           <div class="rec-card ${cls}">
-            <div class="rec-meta" style="color:${col}">${fKey} · Приоритет ${i+1}</div>
-            <div class="rec-title">${m.title || ''}</div>
-            <div class="rec-text">${m.action || m.how || ''}</div>
-            <span class="rec-impact">${m.impact || m.why || ''}</span>
+            <div class="rec-meta" style="color:${col}">${fLabels[fKey]||fKey} · Приоритет ${i+1}</div>
+            <div class="rec-title">${deF(m.title)}</div>
+            <div class="rec-text">${deF(m.action || m.how)}</div>
+            <span class="rec-impact">${deF(m.impact || m.why)}</span>
           </div>`;
       });
     }
@@ -615,10 +621,12 @@
       status.innerHTML = n === 1 ? 'Анализируем данные...' : `Повтор ${n}/3...`;
       container.innerHTML = '';
 
+      const fNames = ['Исследования','Приём','Международность','Финансы','Акад. глубина'];
       const sorted = [...metrics.entries()].sort((a,b) => a[1]-b[1]);
-      const weak = sorted.slice(0,2).map(([i,v]) => `F${i+1}=${v.toFixed(1)}`).join(', ');
+      const weak = sorted.slice(0,2).map(([i,v]) => `«${fNames[i]}»=${v.toFixed(1)}`).join(', ');
+      const metricsList = metrics.map((v,i) => `«${fNames[i]}»=${v.toFixed(1)}`).join(', ');
 
-      const prompt = `Ты аналитик рейтингов университетов. ВУЗ: "${name || 'Модель'}". Балл ${Number(score).toFixed(1)}/100. Метрики 0-10: F1=${metrics[0].toFixed(1)}, F2=${metrics[1].toFixed(1)}, F3=${metrics[2].toFixed(1)}, F4=${metrics[3].toFixed(1)}, F5=${metrics[4].toFixed(1)}. Слабейшие: ${weak}. Верни строго JSON объект с 3 мерами: {"measures":[{"title":"до 5 слов","focus":"F1","action":"конкретное действие с числами и сроком","impact":"прирост метрики и позиций"}]}`;
+      const prompt = `Ты аналитик рейтингов университетов. ВУЗ: "${name || 'Модель'}". Балл ${Number(score).toFixed(1)}/100. Метрики 0-10: ${metricsList}. Слабейшие: ${weak}. Верни строго JSON объект с 3 мерами. В полях title, action, impact используй полные русские названия метрик с правильными падежами и склонениями, НЕ используй коды F1-F5. Поле focus — единственное место где пиши код (F1-F5). Формат: {"measures":[{"title":"до 5 слов","focus":"F1","action":"конкретное действие с числами и сроком","impact":"прирост метрики и позиций"}]}`;
 
       const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
         method: "POST",
