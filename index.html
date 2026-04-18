@@ -314,7 +314,7 @@
 
 <script>
   const API_URL = "https://datazavri.vlados.dev";
-  const GROQ_KEY = "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";
+  const OPENROUTER_KEY = "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";
 
   const paramsInfo = {
     f1: { name: "Средний балл ЕГЭ (бюджет)", min: 40, max: 100, hint: "Для бюджетных мест" },
@@ -628,17 +628,21 @@
 
       const prompt = `Ты аналитик рейтингов университетов. ВУЗ: "${name || 'Модель'}". Балл ${Number(score).toFixed(1)}/100. Метрики 0-10: ${metricsList}. Слабейшие: ${weak}. Верни строго JSON объект с 3 мерами. В полях title, action, impact используй полные русские названия метрик с правильными падежами и склонениями, НЕ используй коды F1-F5. Поле focus — единственное место где пиши код (F1-F5). Формат: {"measures":[{"title":"до 5 слов","focus":"F1","action":"конкретное действие с числами и сроком","impact":"прирост метрики и позиций"}]}`;
 
-      const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
         method: "POST",
-        headers: { "Authorization": `Bearer ${GROQ_KEY}`, "Content-Type": "application/json" },
+        headers: {
+          "Authorization": `Bearer ${OPENROUTER_KEY}`,
+          "Content-Type": "application/json",
+          "HTTP-Referer": window.location.href,
+          "X-Title": "University Analytics"
+        },
         body: JSON.stringify({
-          model: "llama-3.3-70b-versatile",
+          model: "google/gemini-2.5-flash-lite",
           messages: [
             { role: "system", content: "Отвечай только валидным JSON без markdown, пояснений и лишнего текста." },
             { role: "user", content: prompt }
           ],
           temperature: 0.2,
-          response_format: { type: "json_object" },
           max_tokens: 800
         })
       });
@@ -647,8 +651,10 @@
       const data = await res.json();
       if (data.error) throw new Error(data.error.message);
 
-      const content = data.choices?.[0]?.message?.content?.trim();
+      let content = data.choices?.[0]?.message?.content?.trim();
       if (!content) throw new Error('Пустой ответ от модели');
+      const jsonMatch = content.match(/\{[\s\S]*\}/);
+      if (jsonMatch) content = jsonMatch[0];
 
       const parsed = JSON.parse(content);
       const measures = parsed.measures || parsed.measure || Object.values(parsed).find(Array.isArray);
