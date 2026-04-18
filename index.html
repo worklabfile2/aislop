@@ -141,6 +141,66 @@
       border: 1px solid var(--success); color: var(--success); border-radius: 6px;
       font-size: 13px; font-weight: 700; margin-left: 15px;
     }
+
+    .factors-section { margin-top: 30px; }
+    .factors-section-label {
+      font-weight: 800; color: var(--text-dim); font-size: 11px; text-transform: uppercase;
+      letter-spacing: 2px; display: flex; align-items: center; gap: 10px; margin-bottom: 16px;
+    }
+    .factors-section-label::after { content: ""; flex: 1; height: 1px; background: #334155; }
+
+    .factors-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 16px;
+    }
+    @media (max-width: 768px) { .factors-grid { grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); } }
+    @media (max-width: 480px) { .factors-grid { grid-template-columns: 1fr; } }
+
+    .factor-card {
+      background: #0a1628; border: 1px solid #334155; border-radius: 12px;
+      padding: 18px; border-left: 3px solid var(--primary);
+    }
+    .factor-card.f1 { border-left-color: #6366f1; }
+    .factor-card.f2 { border-left-color: #10b981; }
+    .factor-card.f3 { border-left-color: #8b5cf6; }
+    .factor-card.f4 { border-left-color: #f59e0b; }
+    .factor-card.f5 { border-left-color: #ef4444; }
+
+    .factor-header {
+      display: flex; justify-content: space-between; align-items: center;
+      gap: 10px; margin-bottom: 14px;
+    }
+    .factor-label { font-weight: 700; font-size: 12px; color: var(--text-main); text-transform: uppercase; letter-spacing: 0.5px; flex: 1; }
+
+    .factor-score {
+      color: white; padding: 3px 10px; border-radius: 20px;
+      font-size: 12px; font-weight: 700; white-space: nowrap; flex-shrink: 0;
+    }
+    .factor-score.score-low { background: var(--danger); }
+    .factor-score.score-mid { background: var(--warning); }
+    .factor-score.score-high { background: var(--success); }
+
+    .indicator-row {
+      display: flex; justify-content: space-between; align-items: center;
+      gap: 12px; padding: 7px 0; border-bottom: 1px solid #1a2642; font-size: 13px;
+    }
+    .indicator-row:last-child { border-bottom: none; }
+    .ind-label { color: var(--text-dim); flex: 1; line-height: 1.4; font-size: 12px; }
+    .ind-val { font-weight: 700; color: white; white-space: nowrap; font-size: 13px; }
+    .ind-unit { font-size: 10px; color: var(--text-dim); font-weight: 400; }
+    .no-data { color: #3d4f6b; font-style: italic; font-size: 12px; }
+
+    .country-badge {
+      display: inline-block; padding: 2px 8px; border-radius: 4px;
+      font-size: 11px; font-weight: 700; background: rgba(139,92,246,0.15);
+      border: 1px solid var(--accent); color: var(--accent); margin-left: 10px; vertical-align: middle;
+    }
+    .forecast-badge {
+      display: inline-block; padding: 2px 8px; border-radius: 4px;
+      font-size: 11px; font-weight: 700; background: rgba(245,158,11,0.15);
+      border: 1px solid var(--warning); color: var(--warning); margin-left: 10px; vertical-align: middle;
+    }
   </style>
 </head>
 <body>
@@ -178,6 +238,8 @@
       <div style="position: relative; height: 350px;"><canvas id="radarChart"></canvas></div>
       <div id="metricsDisplay"></div>
     </div>
+
+    <div id="factorsContainer" class="factors-section"></div>
 
     <div class="summary-box">
       <div class="ai-label">Стратегические меры</div>
@@ -307,16 +369,30 @@
   function renderDashboard(uni, subtitle) {
     if (!uni) return;
     document.getElementById('uniDashboard').style.display = 'block';
-    document.getElementById('resName').textContent = uni.NameShort || "Прогнозная модель";
 
-    // Обработка Actual Rank
-    const rank = uni.ExtendedRank || uni.rank || "—";
+    // Очищаем предыдущие бейджи страны/прогноза
+    document.querySelectorAll('.country-badge, .forecast-badge').forEach(el => el.remove());
+
+    const nameEl = document.getElementById('resName');
+    nameEl.textContent = uni.NameShort || uni.name || "Прогнозная модель";
+
+    if (uni.Country === 'BY') nameEl.insertAdjacentHTML('afterend', '<span class="country-badge">Беларусь</span>');
+    if (uni.InTraining === false && uni.NameShort) nameEl.insertAdjacentHTML('afterend', '<span class="forecast-badge">Прогнозный рейтинг</span>');
+
+    // Forbes badge — скрыть при нулевом/отсутствующем реальном ранге или симуляции
+    const actualRank = uni.ActualRank || uni.actual_rank || 0;
     const rankEl = document.getElementById('actualRankDisplay');
-    rankEl.textContent = `МЕСТО В РЕЙТИНГЕ: #${rank}`;
-    rankEl.style.display = subtitle === "РЕЗУЛЬТАТ СИМУЛЯЦИИ" ? "none" : "inline-block";
+    if (!actualRank || subtitle === "РЕЗУЛЬТАТ СИМУЛЯЦИИ") {
+      rankEl.style.display = 'none';
+    } else {
+      rankEl.textContent = `МЕСТО FORBES: #${actualRank}`;
+      rankEl.style.display = 'inline-block';
+    }
 
-    const score = uni.ScoreNormalized !== undefined ? uni.ScoreNormalized : (uni.PredictedScore || 0);
-    document.getElementById('resRank').textContent = `${subtitle} • НОРМАЛИЗОВАННЫЙ БАЛЛ: ${Number(score).toFixed(2)}`;
+    const extRank = uni.ExtendedRank || uni.extended_rank;
+    const rankLabel = extRank ? ` • #${extRank} из 723` : '';
+    const score = uni.ScoreNormalized ?? uni.score_normalized ?? uni.PredictedScore ?? uni.predicted_score ?? uni.score ?? 0;
+    document.getElementById('resRank').textContent = `${subtitle}${rankLabel} • БАЛЛ: ${Number(score).toFixed(2)}`;
 
     const metricsKeys = ["F1", "F2", "F3", "F4", "F5"];
     const values = metricsKeys.map(k => {
@@ -341,7 +417,60 @@
         </div>`;
     });
 
-    getAI(uni.NameShort, values, score);
+    renderFactors(uni);
+    getAI(uni.NameShort || uni.name, values, score);
+  }
+
+  function renderFactors(uni) {
+    const isBY = uni.Country === 'BY';
+    const container = document.getElementById('factorsContainer');
+
+    const groups = [
+      { key: 'F1', cls: 'f1', label: 'Исследовательская активность', indicators: [
+        { key: 'WosPubsPer100', label: 'Публикации WoS на 100 преп.', unit: 'шт/100 НПР' },
+        { key: 'RndRevenueShare', label: 'Доля НИОКР в доходах', unit: '%' },
+        { key: 'GrantsPer100Fac', label: 'Гранты на 100 преп.', unit: 'шт/100 НПР' },
+        { key: 'MasterShare', label: 'Доля магистрантов', unit: '%' },
+        { key: 'ForeignFacultyShare', label: 'Доля иностранных преп.', unit: '%' },
+      ]},
+      { key: 'F2', cls: 'f2', label: 'Качество приёма и престиж', indicators: [
+        { key: 'EgeBudget', label: isBY ? 'Средний ЦТ (бюджет)' : 'Средний ЕГЭ (бюджет)', unit: 'баллов' },
+        { key: 'EgePaid', label: isBY ? 'Средний ЦТ (платное)' : 'Средний ЕГЭ (платное)', unit: 'баллов' },
+        { key: 'EgeMin', label: isBY ? 'Мин. проходной ЦТ' : 'Мин. проходной балл', unit: 'баллов' },
+        { key: 'VsoshPer100', label: 'Победители ВсОШ', unit: 'шт/100 студ.' },
+        { key: 'OlympPer100', label: 'Победители олимпиад', unit: 'шт/100 студ.' },
+      ]},
+      { key: 'F3', cls: 'f3', label: 'Международность', indicators: [
+        { key: 'ForeignNonCisShare', label: 'Иностранные студенты (не СНГ)', unit: '%' },
+        { key: 'ForeignTotalShare', label: 'Иностранные студенты (всего)', unit: '%' },
+      ]},
+      { key: 'F4', cls: 'f4', label: 'Финансовые ресурсы', indicators: [
+        { key: 'RevenuePerFaculty', label: 'Доходы на 1 преподавателя', unit: 'тыс. руб.' },
+        { key: 'ModernEquipmentShare', label: 'Доля современного оборудования', unit: '%' },
+      ]},
+      { key: 'F5', cls: 'f5', label: 'Академическая глубина', indicators: [
+        { key: 'PostgradPer100', label: 'Аспиранты на 100 студентов', unit: 'чел/100' },
+        { key: 'DoctShare', label: 'Доля докторов наук', unit: '%' },
+      ]},
+    ];
+
+    const cardsHtml = groups.map(g => {
+      const normVal = uni[g.key + 'Norm'];
+      const scoreCls = normVal == null ? '' : normVal < 4 ? 'score-low' : normVal < 7 ? 'score-mid' : 'score-high';
+      const scoreHtml = normVal != null ? `<span class="factor-score ${scoreCls}">${normVal.toFixed(1)}/10</span>` : '';
+
+      const rows = g.indicators.map(ind => {
+        const v = uni[ind.key];
+        const display = v == null
+          ? `<span class="no-data">нет данных</span>`
+          : `<span class="ind-val">${Number.isInteger(v) ? v : v.toFixed(2)} <span class="ind-unit">${ind.unit}</span></span>`;
+        return `<div class="indicator-row"><span class="ind-label">${ind.label}</span>${display}</div>`;
+      }).join('');
+
+      return `<div class="factor-card ${g.cls}"><div class="factor-header"><span class="factor-label">${g.label}</span>${scoreHtml}</div>${rows}</div>`;
+    }).join('');
+
+    container.innerHTML = `<div class="factors-section-label">Детальные показатели</div><div class="factors-grid">${cardsHtml}</div>`;
   }
 
   function updateChart(values) {
