@@ -424,8 +424,20 @@
         body: JSON.stringify([params])
       });
       const data = await res.json();
-      const result = Array.isArray(data) ? data[0] : data;
-      renderDashboard(result, "РЕЗУЛЬТАТ СИМУЛЯЦИИ");
+      const raw = Array.isArray(data) ? data[0] : data;
+      const scoreData = raw.score || raw;
+      const factors = scoreData.factors || {};
+      const uni = {
+        ScoreNormalized: scoreData.score_normalized ?? scoreData.ScoreNormalized,
+        ExtendedRank: scoreData.rank ?? scoreData.ExtendedRank,
+        F1Norm: factors.F1?.normalized,
+        F2Norm: factors.F2?.normalized,
+        F3Norm: factors.F3?.normalized,
+        F4Norm: factors.F4?.normalized,
+        F5Norm: factors.F5?.normalized,
+        _dataQuality: scoreData.data_quality,
+      };
+      renderDashboard(uni, "РЕЗУЛЬТАТ СИМУЛЯЦИИ");
     } catch (e) { alert("Ошибка расчета"); }
   }
 
@@ -483,7 +495,8 @@
         </div>`;
     });
 
-    renderFactors(uni);
+    if (subtitle !== "РЕЗУЛЬТАТ СИМУЛЯЦИИ") renderFactors(uni);
+    else document.getElementById('factorsContainer').innerHTML = '';
     getAI(uni.NameShort || uni.name, values, score);
   }
 
