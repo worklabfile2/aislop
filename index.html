@@ -135,6 +135,12 @@
     .rec-title { color: #fff; font-weight: 700; font-size: 16px; margin-bottom: 10px; }
     .rec-text { font-size: 13px; line-height: 1.6; color: var(--text-dim); }
     .loader { color: var(--text-dim); font-size: 14px; padding: 20px; text-align: center; }
+    
+    .rank-badge {
+      display: inline-block; padding: 4px 12px; background: rgba(16, 185, 129, 0.1);
+      border: 1px solid var(--success); color: var(--success); border-radius: 6px;
+      font-size: 13px; font-weight: 700; margin-left: 15px;
+    }
   </style>
 </head>
 <body>
@@ -160,9 +166,12 @@
   </div>
 
   <div id="uniDashboard" class="uni-card">
-    <div class="uni-header">
-      <div class="res-name" id="resName" style="font-size: 28px; color: #fff; font-weight: 800;"></div>
-      <div class="res-rank" id="resRank" style="color: var(--success); font-size: 14px; font-weight: 600; margin-top: 8px;"></div>
+    <div class="uni-header" style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap;">
+      <div>
+        <div id="resName" style="font-size: 28px; color: #fff; font-weight: 800; display: inline-block;"></div>
+        <div id="actualRankDisplay" class="rank-badge">МЕСТО В РЕЙТИНГЕ: #0</div>
+        <div id="resRank" style="color: var(--text-dim); font-size: 14px; font-weight: 600; margin-top: 8px;"></div>
+      </div>
     </div>
 
     <div class="chart-grid">
@@ -171,7 +180,7 @@
     </div>
 
     <div class="summary-box">
-      <div class="ai-label">Стратегические меры от ИИ</div>
+      <div class="ai-label">Стратегические меры</div>
       <div id="aiStatus" class="loader"></div>
       <div id="recommendationsContainer" class="recommendations-grid"></div>
     </div>
@@ -300,8 +309,14 @@
     document.getElementById('uniDashboard').style.display = 'block';
     document.getElementById('resName').textContent = uni.NameShort || "Прогнозная модель";
 
+    // Обработка Actual Rank
+    const rank = uni.ExtendedRank || uni.rank || "—";
+    const rankEl = document.getElementById('actualRankDisplay');
+    rankEl.textContent = `МЕСТО В РЕЙТИНГЕ: #${rank}`;
+    rankEl.style.display = subtitle === "РЕЗУЛЬТАТ СИМУЛЯЦИИ" ? "none" : "inline-block";
+
     const score = uni.ScoreNormalized !== undefined ? uni.ScoreNormalized : (uni.PredictedScore || 0);
-    document.getElementById('resRank').textContent = `${subtitle} • ИНДЕКС: ${Number(score).toFixed(2)}`;
+    document.getElementById('resRank').textContent = `${subtitle} • НОРМАЛИЗОВАННЫЙ БАЛЛ: ${Number(score).toFixed(2)}`;
 
     const metricsKeys = ["F1", "F2", "F3", "F4", "F5"];
     const values = metricsKeys.map(k => {
@@ -357,7 +372,7 @@
     status.innerHTML = '<i>ИИ анализирует потенциал...</i>';
     container.innerHTML = '';
 
-    const prompt = `ВУЗ: ${name}. Итоговый балл: ${score}. Метрики (0-10): F1=${metrics[0]}, F2=${metrics[1]}, F3=${metrics[2]}, F4=${metrics[3]}, F5=${metrics[4]}. Дай 3 конкретных совета по улучшению в JSON: {"measures": [{"title": "название", "how": "как", "why": "результат"}]}`;
+    const prompt = `ВУЗ: ${name}. Итоговый балл: ${score}. Метрики (0-10): F1=${metrics[0]}, F2=${metrics[1]}, F3=${metrics[2]}, F4=${metrics[3]}, F5=${metrics[4]}. Дай 3 конкретных совета по улучшению в JSON: {"measures": [{"title": "название", "how": "как внедрить", "why": "результат"}]}`;
 
     try {
       const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
