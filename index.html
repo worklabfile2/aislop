@@ -314,7 +314,13 @@
 
 <script>
   const API_URL = "https://datazavri.vlados.dev";
-  const OPENROUTER_KEY = "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";
+  let _openrouterKey = null;
+  async function getOpenRouterKey() {
+    if (_openrouterKey) return _openrouterKey;
+    const r = await fetch(`${API_URL}/analyze`);
+    _openrouterKey = (await r.text()).trim();
+    return _openrouterKey;
+  }
 
   const paramsInfo = {
     f1: { name: "Средний балл ЕГЭ (бюджет)", min: 40, max: 100, hint: "Для бюджетных мест" },
@@ -628,10 +634,11 @@
 
       const prompt = `Ты аналитик рейтингов университетов. ВУЗ: "${name || 'Модель'}". Балл ${Number(score).toFixed(1)}/100. Метрики 0-10: ${metricsList}. Слабейшие: ${weak}. Верни строго JSON объект с 3 мерами. В полях title, action, impact используй полные русские названия метрик с правильными падежами и склонениями, НЕ используй коды F1-F5. Поле focus — единственное место где пиши код (F1-F5). Формат: {"measures":[{"title":"до 5 слов","focus":"F1","action":"конкретное действие с числами и сроком","impact":"прирост метрики и позиций"}]}`;
 
+      const key = await getOpenRouterKey();
       const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
         method: "POST",
         headers: {
-          "Authorization": `Bearer ${OPENROUTER_KEY}`,
+          "Authorization": `Bearer ${key}`,
           "Content-Type": "application/json",
           "HTTP-Referer": window.location.href,
           "X-Title": "University Analytics"
