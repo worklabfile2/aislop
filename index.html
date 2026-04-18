@@ -7,15 +7,25 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     :root {
-      --primary: #6366f1;
-      --success: #10b981;
-      --warning: #f59e0b;
-      --danger: #ef4444;
-      --bg: #0f172a;
-      --card-bg: #1e293b;
-      --text-main: #f1f5f9;
-      --text-dim: #94a3b8;
-      --accent: #8b5cf6;
+      --primary: #4f46e5;
+      --primary-light: #eef2ff;
+      --success: #059669;
+      --success-light: #ecfdf5;
+      --warning: #d97706;
+      --warning-light: #fffbeb;
+      --danger: #dc2626;
+      --danger-light: #fef2f2;
+      --purple: #7c3aed;
+      --purple-light: #f5f3ff;
+      --bg: #f1f5f9;
+      --card-bg: #ffffff;
+      --card-border: #e2e8f0;
+      --text-main: #0f172a;
+      --text-dim: #475569;
+      --text-muted: #94a3b8;
+      --rule: #e2e8f0;
+      --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -24,183 +34,235 @@
       background: var(--bg);
       color: var(--text-main);
       min-height: 100vh;
-      padding: 20px;
+      padding: 16px 20px;
+      -webkit-font-smoothing: antialiased;
     }
+    @media (max-width: 480px) { body { padding: 10px 12px; } }
 
     .container { max-width: 1200px; margin: 0 auto; }
 
+    /* ── Tabs ── */
     .mode-tabs {
-      display: flex; gap: 10px; margin-bottom: 25px;
-      background: var(--card-bg); padding: 6px; border-radius: 12px; border: 1px solid #334155;
+      display: flex; gap: 4px; margin-bottom: 16px;
+      background: var(--card-bg); padding: 4px; border-radius: 10px;
+      border: 1px solid var(--card-border); box-shadow: var(--shadow);
     }
     .tab {
-      flex: 1; padding: 12px; text-align: center; cursor: pointer;
-      border-radius: 8px; font-weight: 600; transition: 0.3s; color: var(--text-dim);
+      flex: 1; padding: 10px 8px; text-align: center; cursor: pointer;
+      border-radius: 7px; font-weight: 600; font-size: 14px; transition: all 0.15s;
+      color: var(--text-dim);
     }
-    .tab.active { background: var(--primary); color: white; }
+    .tab.active { background: var(--primary); color: white; box-shadow: 0 2px 8px rgba(79,70,229,0.3); }
 
     .mode-section { display: none; }
     .mode-section.active { display: block; }
 
+    /* ── Search ── */
     input[type="text"] {
-      width: 100%; padding: 14px; background: #0f172a; border: 1px solid #334155;
-      color: white; border-radius: 10px; font-size: 14px; outline: none;
+      width: 100%; padding: 13px 16px; background: var(--card-bg); border: 1px solid var(--card-border);
+      color: var(--text-main); border-radius: 10px; font-size: 15px; outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s; box-shadow: var(--shadow);
     }
-    input[type="text"]:focus { border-color: var(--primary); }
+    input[type="text"]:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(79,70,229,0.12); }
 
-    .search-section { position: relative; margin-bottom: 25px; }
+    .search-section { position: relative; margin-bottom: 16px; }
     .autocomplete-list {
       position: absolute; top: 100%; left: 0; right: 0;
-      background: #1e293b; border: 1px solid #475569; border-radius: 10px;
-      margin-top: 8px; max-height: 300px; overflow-y: auto; z-index: 100;
+      background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 10px;
+      margin-top: 6px; max-height: 300px; overflow-y: auto; z-index: 100;
+      box-shadow: var(--shadow-md);
     }
-    .uni-item { padding: 12px 20px; cursor: pointer; border-bottom: 1px solid #334155; font-size: 14px; }
-    .uni-item:hover { background: #2d3748; }
+    .uni-item { padding: 12px 16px; cursor: pointer; border-bottom: 1px solid var(--rule); font-size: 14px; color: var(--text-main); }
+    .uni-item:hover { background: var(--primary-light); color: var(--primary); }
+    .uni-item:last-child { border-bottom: none; }
+    @media (max-width: 480px) { .uni-item { padding: 14px 16px; min-height: 44px; display: flex; align-items: center; } }
 
-    .params-container { background: var(--card-bg); border-radius: 12px; padding: 30px; border: 1px solid #334155; }
+    /* ── Params ── */
+    .params-container { background: var(--card-bg); border-radius: 12px; padding: 18px; border: 1px solid var(--card-border); box-shadow: var(--shadow); }
     .params-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 25px;
-      margin-bottom: 30px;
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 12px; margin-bottom: 16px;
     }
+    @media (max-width: 768px) { .params-container { padding: 14px; } }
+    @media (max-width: 480px) { .params-grid { grid-template-columns: 1fr; gap: 10px; } }
 
     .param-field {
-      background: #0f172a; border: 1px solid #334155; border-radius: 12px; padding: 20px; transition: all 0.3s;
+      background: var(--bg); border: 1px solid var(--card-border); border-radius: 8px;
+      padding: 14px; transition: border-color 0.15s, box-shadow 0.15s;
     }
-    .param-field:hover { border-color: var(--primary); background: #1e293b; }
-
-    .param-label { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
-    .param-name { font-weight: 700; font-size: 14px; color: white; }
+    .param-field:hover { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(79,70,229,0.08); }
+    .param-label { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+    .param-name { font-weight: 600; font-size: 13px; color: var(--text-main); }
 
     .tooltip-icon {
-      width: 18px; height: 18px; border-radius: 50%; background: var(--primary);
-      color: white; display: flex; align-items: center; justify-content: center;
-      font-size: 11px; font-weight: bold; cursor: help; position: relative;
+      width: 16px; height: 16px; border-radius: 50%; background: var(--primary-light);
+      color: var(--primary); display: flex; align-items: center; justify-content: center;
+      font-size: 10px; font-weight: bold; cursor: help; position: relative; flex-shrink: 0;
     }
-
     .tooltip-icon:hover::after {
-      content: attr(data-tooltip); position: absolute; bottom: 105%; left: 50%; transform: translateX(-50%);
-      background: #0f172a; color: var(--text-main); padding: 10px; border-radius: 8px;
-      border: 1px solid var(--primary); font-size: 12px; z-index: 1000; width: 180px; text-align: center;
+      content: attr(data-tooltip); position: absolute; bottom: 120%; left: 50%; transform: translateX(-50%);
+      background: var(--text-main); color: white; padding: 8px 12px; border-radius: 6px;
+      font-size: 11px; z-index: 1000; width: 170px; text-align: center;
+      line-height: 1.4; box-shadow: var(--shadow-md);
     }
+    @media (max-width: 480px) { .tooltip-icon:hover::after { display: none; } }
 
     .range-input {
-      width: 100%; height: 6px; border-radius: 3px; background: #334155;
-      outline: none; -webkit-appearance: none; margin-bottom: 10px;
+      width: 100%; height: 5px; border-radius: 3px; background: var(--card-border);
+      outline: none; -webkit-appearance: none; margin-bottom: 10px; cursor: pointer;
     }
     .range-input::-webkit-slider-thumb {
       -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%;
-      background: white; border: 2px solid var(--primary); cursor: pointer;
+      background: var(--primary); border: 2px solid white; cursor: pointer;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.2);
     }
 
     .value-badge {
-      background: var(--primary); color: white; padding: 4px 12px; border-radius: 20px;
-      font-weight: 700; font-size: 13px; min-width: 50px; text-align: center;
+      background: var(--primary-light); color: var(--primary); padding: 3px 10px; border-radius: 20px;
+      font-weight: 700; font-size: 12px; min-width: 48px; text-align: center; font-variant-numeric: tabular-nums;
     }
-    .value-badge.low { background: var(--danger); }
-    .value-badge.medium { background: var(--warning); }
-    .value-badge.high { background: var(--success); }
+    .value-badge.low { background: var(--danger-light); color: var(--danger); }
+    .value-badge.medium { background: var(--warning-light); color: var(--warning); }
+    .value-badge.high { background: var(--success-light); color: var(--success); }
 
     .btn-calc {
-      width: 100%; padding: 16px; background: var(--primary); color: white;
-      border: none; border-radius: 10px; font-weight: 700; cursor: pointer;
-      text-transform: uppercase; font-size: 14px; letter-spacing: 1px; transition: 0.3s;
+      width: 100%; padding: 14px; background: var(--primary); color: white;
+      border: none; border-radius: 8px; font-weight: 700; cursor: pointer;
+      font-size: 14px; letter-spacing: 0.5px; transition: all 0.15s;
+      min-height: 48px; box-shadow: 0 2px 8px rgba(79,70,229,0.3);
     }
-    .btn-calc:hover { background: var(--accent); transform: translateY(-2px); }
+    .btn-calc:hover { background: #4338ca; box-shadow: 0 4px 16px rgba(79,70,229,0.4); }
+    .btn-calc:active { background: #3730a3; }
 
+    /* ── Dashboard card ── */
     .uni-card {
-      background: var(--card-bg); border-radius: 20px; padding: 30px;
-      border: 1px solid #334155; display: none; margin-top: 25px;
+      background: var(--card-bg); border-radius: 14px; padding: 0;
+      border: 1px solid var(--card-border); display: none; margin-top: 16px;
+      overflow: hidden; box-shadow: var(--shadow-md);
     }
 
-    .chart-grid { display: grid; grid-template-columns: 1fr 1.2fr; gap: 30px; margin-top: 20px; align-items: center; }
-    @media (max-width: 850px) { .chart-grid { grid-template-columns: 1fr; } }
-
-    .metric-row { display: grid; grid-template-columns: 130px 1fr 50px; align-items: center; gap: 15px; margin-bottom: 12px; }
-    .progress-bg { height: 8px; background: #0f172a; border-radius: 4px; overflow: hidden; }
-    .progress-fill { height: 100%; transition: width 1s; }
-
-    .ai-label {
-      font-weight: 800; color: var(--accent); font-size: 12px; text-transform: uppercase;
-      margin: 40px 0 20px; letter-spacing: 2px; display: flex; align-items: center; gap: 10px;
+    /* ── Score hero ── */
+    .score-hero {
+      background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+      padding: 20px 24px 18px;
     }
-    .ai-label::after { content: ""; flex: 1; height: 1px; background: #334155; }
+    .score-hero-name {
+      font-size: 22px; font-weight: 800; color: #fff;
+      line-height: 1.2; margin-bottom: 2px; letter-spacing: -0.3px;
+    }
+    .score-hero-sub {
+      font-size: 12px; color: rgba(255,255,255,0.6);
+      letter-spacing: 0.3px; margin-bottom: 16px;
+    }
+    .score-hero-stats {
+      display: flex; flex-wrap: wrap; gap: 0;
+      background: rgba(0,0,0,0.18); border-radius: 10px; padding: 12px 20px;
+    }
+    .stat-cell {
+      flex: 1; min-width: 100px; padding: 4px 20px 4px 0; margin-right: 20px;
+      border-right: 1px solid rgba(255,255,255,0.15); display: flex; flex-direction: column; gap: 3px;
+    }
+    .stat-cell:last-child { border-right: none; margin-right: 0; padding-right: 0; }
+    .stat-num {
+      font-size: 32px; font-weight: 800; line-height: 1; letter-spacing: -1px;
+      font-variant-numeric: tabular-nums; color: #fff;
+    }
+    .stat-num.highlight { color: #c4b5fd; }
+    .stat-label { font-size: 12px; font-weight: 500; color: rgba(255,255,255,0.55); }
+    .tag-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 12px; }
+    .tag { font-size: 12px; font-weight: 600; padding: 4px 12px; border-radius: 20px; }
+    .tag-by { background: rgba(255,255,255,0.15); color: #e9d5ff; }
+    .tag-forecast { background: rgba(251,191,36,0.25); color: #fde68a; }
+    .tag-forbes { background: rgba(52,211,153,0.25); color: #6ee7b7; }
 
-    .recommendations-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
-    .rec-card {
-      background: rgba(15, 23, 42, 0.4); border: 1px solid #334155; padding: 20px;
-      border-radius: 16px; border-top: 3px solid var(--primary);
-    }
-    .rec-title { color: #fff; font-weight: 700; font-size: 16px; margin-bottom: 10px; }
-    .rec-text { font-size: 13px; line-height: 1.6; color: var(--text-dim); }
-    .loader { color: var(--text-dim); font-size: 14px; padding: 20px; text-align: center; }
-    
-    .rank-badge {
-      display: inline-block; padding: 4px 12px; background: rgba(16, 185, 129, 0.1);
-      border: 1px solid var(--success); color: var(--success); border-radius: 6px;
-      font-size: 13px; font-weight: 700; margin-left: 15px;
+    @media (max-width: 480px) {
+      .score-hero { padding: 14px 16px; }
+      .score-hero-name { font-size: 17px; }
+      .stat-num { font-size: 26px; }
+      .stat-cell { min-width: 80px; padding-right: 14px; margin-right: 14px; }
+      .score-hero-stats { padding: 10px 14px; }
     }
 
-    .factors-section { margin-top: 30px; }
-    .factors-section-label {
-      font-weight: 800; color: var(--text-dim); font-size: 11px; text-transform: uppercase;
-      letter-spacing: 2px; display: flex; align-items: center; gap: 10px; margin-bottom: 16px;
+    /* ── Chart section ── */
+    .chart-section { padding: 16px 24px; border-bottom: 1px solid var(--rule); background: #fafbff; }
+    .chart-grid { display: grid; grid-template-columns: 260px 1fr; gap: 24px; align-items: center; }
+    @media (max-width: 850px) { .chart-grid { grid-template-columns: 1fr; gap: 16px; } }
+    @media (max-width: 480px) {
+      .chart-section { padding: 12px 16px; }
+      .chart-grid > div:first-child { height: 200px !important; }
     }
-    .factors-section-label::after { content: ""; flex: 1; height: 1px; background: #334155; }
 
-    .factors-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-      gap: 16px;
-    }
-    @media (max-width: 768px) { .factors-grid { grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); } }
-    @media (max-width: 480px) { .factors-grid { grid-template-columns: 1fr; } }
+    .metric-row { display: grid; grid-template-columns: 150px 1fr 52px; align-items: center; gap: 12px; margin-bottom: 10px; }
+    .metric-row:last-child { margin-bottom: 0; }
+    @media (max-width: 480px) { .metric-row { grid-template-columns: 110px 1fr 44px; gap: 8px; } }
+
+    .progress-bg { height: 8px; background: var(--rule); overflow: hidden; border-radius: 4px; }
+    .progress-fill { height: 100%; transition: width 0.8s ease; border-radius: 4px; }
+    .metric-name { font-size: 13px; font-weight: 600; color: var(--text-dim); text-transform: none; letter-spacing: 0; }
+    .metric-val { font-size: 16px; font-weight: 800; text-align: right; font-variant-numeric: tabular-nums; }
+
+    /* ── Factors ── */
+    .factors-section { padding: 16px 24px; border-bottom: 1px solid var(--rule); }
+    .section-label { font-size: 13px; font-weight: 600; color: var(--text-dim); margin-bottom: 12px; }
+    .factors-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 10px; }
+    @media (max-width: 480px) { .factors-section { padding: 12px 16px; } .factors-grid { grid-template-columns: 1fr; gap: 8px; } }
 
     .factor-card {
-      background: #0a1628; border: 1px solid #334155; border-radius: 12px;
-      padding: 18px; border-left: 3px solid var(--primary);
+      border-radius: 10px; padding: 14px 16px; border: 1px solid transparent;
     }
-    .factor-card.f1 { border-left-color: #6366f1; }
-    .factor-card.f2 { border-left-color: #10b981; }
-    .factor-card.f3 { border-left-color: #8b5cf6; }
-    .factor-card.f4 { border-left-color: #f59e0b; }
-    .factor-card.f5 { border-left-color: #ef4444; }
+    .factor-card.f1 { background: #eef2ff; border-color: #c7d2fe; }
+    .factor-card.f2 { background: #ecfdf5; border-color: #a7f3d0; }
+    .factor-card.f3 { background: #f5f3ff; border-color: #ddd6fe; }
+    .factor-card.f4 { background: #fffbeb; border-color: #fde68a; }
+    .factor-card.f5 { background: #fef2f2; border-color: #fecaca; }
 
     .factor-header {
       display: flex; justify-content: space-between; align-items: center;
-      gap: 10px; margin-bottom: 14px;
+      gap: 8px; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid rgba(0,0,0,0.06);
     }
-    .factor-label { font-weight: 700; font-size: 12px; color: var(--text-main); text-transform: uppercase; letter-spacing: 0.5px; flex: 1; }
-
+    .factor-label { font-weight: 700; font-size: 12px; color: var(--text-main); flex: 1; }
     .factor-score {
-      color: white; padding: 3px 10px; border-radius: 20px;
-      font-size: 12px; font-weight: 700; white-space: nowrap; flex-shrink: 0;
+      font-size: 13px; font-weight: 800; white-space: nowrap; flex-shrink: 0;
+      font-variant-numeric: tabular-nums; padding: 2px 9px; border-radius: 20px;
     }
-    .factor-score.score-low { background: var(--danger); }
-    .factor-score.score-mid { background: var(--warning); }
-    .factor-score.score-high { background: var(--success); }
+    .factor-score.score-low { background: var(--danger-light); color: var(--danger); }
+    .factor-score.score-mid { background: var(--warning-light); color: var(--warning); }
+    .factor-score.score-high { background: var(--success-light); color: var(--success); }
 
     .indicator-row {
-      display: flex; justify-content: space-between; align-items: center;
-      gap: 12px; padding: 7px 0; border-bottom: 1px solid #1a2642; font-size: 13px;
+      display: flex; justify-content: space-between; align-items: baseline;
+      gap: 8px; padding: 5px 0; border-bottom: 1px solid rgba(0,0,0,0.05); font-size: 12px;
     }
-    .indicator-row:last-child { border-bottom: none; }
-    .ind-label { color: var(--text-dim); flex: 1; line-height: 1.4; font-size: 12px; }
-    .ind-val { font-weight: 700; color: white; white-space: nowrap; font-size: 13px; }
-    .ind-unit { font-size: 10px; color: var(--text-dim); font-weight: 400; }
-    .no-data { color: #3d4f6b; font-style: italic; font-size: 12px; }
+    .indicator-row:last-child { border-bottom: none; padding-bottom: 0; }
+    .ind-label { color: var(--text-dim); flex: 1; line-height: 1.4; }
+    .ind-val { font-weight: 800; color: var(--text-main); white-space: nowrap; font-variant-numeric: tabular-nums; font-size: 13px; }
+    .ind-unit { font-size: 10px; color: var(--text-muted); font-weight: 500; margin-left: 2px; }
+    .no-data { color: var(--text-muted); font-size: 12px; }
 
-    .country-badge {
-      display: inline-block; padding: 2px 8px; border-radius: 4px;
-      font-size: 11px; font-weight: 700; background: rgba(139,92,246,0.15);
-      border: 1px solid var(--accent); color: var(--accent); margin-left: 10px; vertical-align: middle;
+    /* ── AI section ── */
+    .ai-section { padding: 16px 24px; background: #fafbff; }
+    @media (max-width: 480px) { .ai-section { padding: 12px 16px; } }
+
+    .ai-label { font-size: 13px; font-weight: 600; color: var(--text-dim); margin-bottom: 12px; }
+    .recommendations-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 10px; }
+    @media (max-width: 480px) { .recommendations-grid { grid-template-columns: 1fr; } }
+
+    .rec-card {
+      background: white; border: 1px solid var(--card-border); padding: 16px;
+      border-radius: 10px; border-left: 4px solid var(--primary);
+      box-shadow: var(--shadow);
     }
-    .forecast-badge {
-      display: inline-block; padding: 2px 8px; border-radius: 4px;
-      font-size: 11px; font-weight: 700; background: rgba(245,158,11,0.15);
-      border: 1px solid var(--warning); color: var(--warning); margin-left: 10px; vertical-align: middle;
-    }
+    .rec-card.priority-high { border-left-color: var(--danger); }
+    .rec-card.priority-mid  { border-left-color: var(--warning); }
+    .rec-card.priority-ok   { border-left-color: var(--success); }
+    .rec-title { color: var(--text-main); font-weight: 800; font-size: 14px; margin-bottom: 8px; }
+    .rec-meta { font-size: 12px; color: var(--text-muted); margin-bottom: 6px; font-weight: 600; }
+    .rec-text { font-size: 13px; line-height: 1.6; color: var(--text-dim); }
+    .rec-impact { display: inline-block; margin-top: 10px; font-size: 12px; font-weight: 700;
+      background: var(--success-light); color: var(--success); padding: 4px 12px; border-radius: 20px; }
+    .loader { color: var(--text-dim); font-size: 13px; padding: 12px 0; }
+
+    .uni-card { margin-top: 16px; }
   </style>
 </head>
 <body>
@@ -226,22 +288,23 @@
   </div>
 
   <div id="uniDashboard" class="uni-card">
-    <div class="uni-header" style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap;">
-      <div>
-        <div id="resName" style="font-size: 28px; color: #fff; font-weight: 800; display: inline-block;"></div>
-        <div id="actualRankDisplay" class="rank-badge">МЕСТО В РЕЙТИНГЕ: #0</div>
-        <div id="resRank" style="color: var(--text-dim); font-size: 14px; font-weight: 600; margin-top: 8px;"></div>
-      </div>
+    <div class="score-hero" id="scoreHero">
+      <div class="score-hero-name" id="resName"></div>
+      <div class="score-hero-sub" id="resSubtitle"></div>
+      <div class="score-hero-stats" id="scoreStats"></div>
+      <div class="tag-row" id="tagRow"></div>
     </div>
 
-    <div class="chart-grid">
-      <div style="position: relative; height: 350px;"><canvas id="radarChart"></canvas></div>
-      <div id="metricsDisplay"></div>
+    <div class="chart-section">
+      <div class="chart-grid">
+        <div style="position: relative; height: 260px;"><canvas id="radarChart"></canvas></div>
+        <div id="metricsDisplay"></div>
+      </div>
     </div>
 
     <div id="factorsContainer" class="factors-section"></div>
 
-    <div class="summary-box">
+    <div class="ai-section">
       <div class="ai-label">Стратегические меры</div>
       <div id="aiStatus" class="loader"></div>
       <div id="recommendationsContainer" class="recommendations-grid"></div>
@@ -251,7 +314,7 @@
 
 <script>
   const API_URL = "https://datazavri.vlados.dev";
-  const OPENROUTER_KEY = "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";
+  const GROQ_KEY = "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";
 
   const paramsInfo = {
     f1: { name: "Средний балл ЕГЭ (бюджет)", min: 40, max: 100, hint: "Для бюджетных мест" },
@@ -366,34 +429,37 @@
     } catch (e) { alert("Ошибка расчета"); }
   }
 
+  function fmtNum(v) {
+    if (v == null) return null;
+    return v >= 15 ? Number(v).toFixed(1) : Number(v).toFixed(2);
+  }
+
   function renderDashboard(uni, subtitle) {
     if (!uni) return;
     document.getElementById('uniDashboard').style.display = 'block';
 
-    // Очищаем предыдущие бейджи страны/прогноза
-    document.querySelectorAll('.country-badge, .forecast-badge').forEach(el => el.remove());
+    // Название
+    document.getElementById('resName').textContent = uni.NameShort || uni.name || "Прогнозная модель";
+    document.getElementById('resSubtitle').textContent = subtitle;
 
-    const nameEl = document.getElementById('resName');
-    nameEl.textContent = uni.NameShort || uni.name || "Прогнозная модель";
-
-    if (uni.Country === 'BY') nameEl.insertAdjacentHTML('afterend', '<span class="country-badge">Беларусь</span>');
-    if (uni.InTraining === false && uni.NameShort) nameEl.insertAdjacentHTML('afterend', '<span class="forecast-badge">Прогнозный рейтинг</span>');
-
-    // Forbes badge — скрыть при нулевом/отсутствующем реальном ранге или симуляции
+    // Теги
+    const tags = [];
+    if (uni.Country === 'BY') tags.push('<span class="tag tag-by">Беларусь</span>');
+    if (uni.InTraining === false && uni.NameShort) tags.push('<span class="tag tag-forecast">Прогнозный рейтинг</span>');
     const actualRank = uni.ActualRank || uni.actual_rank || 0;
-    const rankEl = document.getElementById('actualRankDisplay');
-    if (!actualRank || subtitle === "РЕЗУЛЬТАТ СИМУЛЯЦИИ") {
-      rankEl.style.display = 'none';
-    } else {
-      rankEl.textContent = `МЕСТО FORBES: #${actualRank}`;
-      rankEl.style.display = 'inline-block';
-    }
+    if (actualRank && subtitle !== "РЕЗУЛЬТАТ СИМУЛЯЦИИ") tags.push(`<span class="tag tag-forbes">Forbes #${actualRank}</span>`);
+    document.getElementById('tagRow').innerHTML = tags.join('');
 
+    // Крупные цифры
     const extRank = uni.ExtendedRank || uni.extended_rank;
-    const rankLabel = extRank ? ` • #${extRank} из 723` : '';
     const score = uni.ScoreNormalized ?? uni.score_normalized ?? uni.PredictedScore ?? uni.predicted_score ?? uni.score ?? 0;
-    document.getElementById('resRank').textContent = `${subtitle}${rankLabel} • БАЛЛ: ${Number(score).toFixed(2)}`;
+    const statsEl = document.getElementById('scoreStats');
+    let statsHtml = '';
+    if (extRank) statsHtml += `<div class="stat-cell"><div class="stat-num highlight">#${extRank}</div><div class="stat-label">из 723 вузов</div></div>`;
+    statsHtml += `<div class="stat-cell"><div class="stat-num">${Number(score).toFixed(1)}</div><div class="stat-label">Балл / 100</div></div>`;
+    statsEl.innerHTML = statsHtml;
 
+    // Метрики радара
     const metricsKeys = ["F1", "F2", "F3", "F4", "F5"];
     const values = metricsKeys.map(k => {
       const normKey = k + "Norm";
@@ -408,12 +474,12 @@
     container.innerHTML = '';
     metricsKeys.forEach((key, idx) => {
       const val = values[idx];
-      const color = val <= 3.5 ? '#ef4444' : val <= 6.5 ? '#f59e0b' : '#10b981';
+      const color = val <= 3.5 ? '#c0392b' : val <= 6.5 ? '#c97d0a' : '#0e9e6e';
       container.innerHTML += `
         <div class="metric-row">
-          <span style="color:var(--text-dim); font-size:12px; font-weight:600;">${labelsMap[key]}</span>
+          <span class="metric-name">${labelsMap[key]}</span>
           <div class="progress-bg"><div class="progress-fill" style="width:${val * 10}%; background:${color}"></div></div>
-          <span style="color:${color}; font-weight:700; font-size:12px; text-align:right;">${val.toFixed(1)}/10</span>
+          <span class="metric-val" style="color:${color}">${val.toFixed(1)}</span>
         </div>`;
     });
 
@@ -461,16 +527,17 @@
 
       const rows = g.indicators.map(ind => {
         const v = uni[ind.key];
-        const display = v == null
-          ? `<span class="no-data">нет данных</span>`
-          : `<span class="ind-val">${Number.isInteger(v) ? v : v.toFixed(2)} <span class="ind-unit">${ind.unit}</span></span>`;
+        const formatted = fmtNum(v);
+        const display = formatted == null
+          ? `<span class="no-data">—</span>`
+          : `<span class="ind-val">${formatted} <span class="ind-unit">${ind.unit}</span></span>`;
         return `<div class="indicator-row"><span class="ind-label">${ind.label}</span>${display}</div>`;
       }).join('');
 
       return `<div class="factor-card ${g.cls}"><div class="factor-header"><span class="factor-label">${g.label}</span>${scoreHtml}</div>${rows}</div>`;
     }).join('');
 
-    container.innerHTML = `<div class="factors-section-label">Детальные показатели</div><div class="factors-grid">${cardsHtml}</div>`;
+    container.innerHTML = `<div class="section-label">Детальные показатели</div><div class="factors-grid">${cardsHtml}</div>`;
   }
 
   function updateChart(values) {
@@ -479,17 +546,28 @@
     radarChart = new Chart(ctx, {
       type: 'radar',
       data: {
-        labels: ["F1", "F2", "F3", "F4", "F5"],
+        labels: ["Исследования", "Приём", ["Между-", "народность"], "Финансы", ["Акад.", "глубина"]],
         datasets: [{
           data: values,
-          backgroundColor: 'rgba(99, 102, 241, 0.2)',
-          borderColor: '#6366f1',
+          backgroundColor: 'rgba(79, 70, 229, 0.1)',
+          borderColor: '#4f46e5',
           borderWidth: 2,
-          pointBackgroundColor: '#fff'
+          pointBackgroundColor: '#4f46e5',
+          pointBorderColor: '#fff',
+          pointBorderWidth: 2,
+          pointRadius: 4,
+          pointHoverRadius: 6
         }]
       },
       options: {
-        scales: { r: { min: 0, max: 10, ticks: { display: false }, grid: { color: '#334155' } } },
+        layout: { padding: 0 },
+        scales: { r: {
+          min: 0, max: 10,
+          ticks: { display: false, stepSize: 2 },
+          grid: { color: '#e2e8f0' },
+          angleLines: { color: '#e2e8f0' },
+          pointLabels: { color: '#334155', font: { size: 12, weight: '600', family: "'Inter', sans-serif" }, padding: 10 }
+        }},
         plugins: { legend: { display: false } }
       }
     });
@@ -498,24 +576,84 @@
   async function getAI(name, metrics, score) {
     const status = document.getElementById('aiStatus');
     const container = document.getElementById('recommendationsContainer');
-    status.innerHTML = '<i>ИИ анализирует потенциал...</i>';
-    container.innerHTML = '';
 
-    const prompt = `ВУЗ: ${name}. Итоговый балл: ${score}. Метрики (0-10): F1=${metrics[0]}, F2=${metrics[1]}, F3=${metrics[2]}, F4=${metrics[3]}, F5=${metrics[4]}. Дай 3 конкретных совета по улучшению в JSON: {"measures": [{"title": "название", "how": "как внедрить", "why": "результат"}]}`;
+    const fColors = { F1:'#6366f1', F2:'#10b981', F3:'#8b5cf6', F4:'#f59e0b', F5:'#ef4444' };
 
-    try {
-      const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+    function renderCards(measures) {
+      status.innerHTML = '';
+      container.innerHTML = '';
+      measures.slice(0, 3).forEach((m, i) => {
+        const fKey = (m.focus || '').replace(/[^F1-5]/g, '') || 'F1';
+        const col = fColors[fKey] || '#6366f1';
+        const mIdx = parseInt(fKey.slice(1)) - 1;
+        const mVal = isNaN(mIdx) ? 5 : (metrics[mIdx] ?? 5);
+        const cls = mVal < 4 ? 'priority-high' : mVal < 7 ? 'priority-mid' : 'priority-ok';
+        container.innerHTML += `
+          <div class="rec-card ${cls}">
+            <div class="rec-meta" style="color:${col}">${fKey} · Приоритет ${i+1}</div>
+            <div class="rec-title">${m.title || ''}</div>
+            <div class="rec-text">${m.action || m.how || ''}</div>
+            <span class="rec-impact">${m.impact || m.why || ''}</span>
+          </div>`;
+      });
+    }
+
+    async function attempt(n) {
+      status.innerHTML = n === 1 ? 'Анализируем данные...' : `Повтор ${n}/3...`;
+      container.innerHTML = '';
+
+      const sorted = [...metrics.entries()].sort((a,b) => a[1]-b[1]);
+      const weak = sorted.slice(0,2).map(([i,v]) => `F${i+1}=${v.toFixed(1)}`).join(', ');
+
+      const prompt = `Ты аналитик рейтингов университетов. ВУЗ: "${name || 'Модель'}". Балл ${Number(score).toFixed(1)}/100. Метрики 0-10: F1=${metrics[0].toFixed(1)}, F2=${metrics[1].toFixed(1)}, F3=${metrics[2].toFixed(1)}, F4=${metrics[3].toFixed(1)}, F5=${metrics[4].toFixed(1)}. Слабейшие: ${weak}. Верни строго JSON объект с 3 мерами: {"measures":[{"title":"до 5 слов","focus":"F1","action":"конкретное действие с числами и сроком","impact":"прирост метрики и позиций"}]}`;
+
+      const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
         method: "POST",
-        headers: { "Authorization": `Bearer ${OPENROUTER_KEY}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ "model": "google/gemini-2-flash-lite", "messages": [{ "role": "user", "content": prompt }] })
+        headers: { "Authorization": `Bearer ${GROQ_KEY}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "llama-3.3-70b-versatile",
+          messages: [
+            { role: "system", content: "Отвечай только валидным JSON без markdown, пояснений и лишнего текста." },
+            { role: "user", content: prompt }
+          ],
+          temperature: 0.2,
+          response_format: { type: "json_object" },
+          max_tokens: 800
+        })
       });
+
+      if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
       const data = await res.json();
-      const aiData = JSON.parse(data.choices[0].message.content.match(/\{[\s\S]*\}/)[0]);
-      status.innerHTML = "";
-      aiData.measures.forEach(m => {
-        container.innerHTML += `<div class="rec-card"><div class="rec-title">${m.title}</div><div class="rec-text"><b>Как:</b> ${m.how}</div><div class="rec-text"><b>Итог:</b> ${m.why}</div></div>`;
-      });
-    } catch (e) { status.textContent = "⚠️ Рекомендации недоступны"; }
+      if (data.error) throw new Error(data.error.message);
+
+      const content = data.choices?.[0]?.message?.content?.trim();
+      if (!content) throw new Error('Пустой ответ от модели');
+
+      const parsed = JSON.parse(content);
+      const measures = parsed.measures || parsed.measure || Object.values(parsed).find(Array.isArray);
+      if (!Array.isArray(measures) || !measures.length) throw new Error('Нет массива мер в ответе');
+      return measures;
+    }
+
+    for (let n = 1; n <= 3; n++) {
+      try {
+        const measures = await attempt(n);
+        renderCards(measures);
+        return;
+      } catch (e) {
+        console.warn(`getAI попытка ${n} провалилась:`, e.message);
+        if (n < 3) await new Promise(r => setTimeout(r, n * 800));
+      }
+    }
+
+    status.innerHTML = '';
+    container.innerHTML = `<div style="color:#dc2626;font-size:13px;padding:8px 0">
+      Не удалось получить рекомендации.
+      <button onclick="getAI('${(name||'').replace(/'/g,"\\'")}', [${metrics.map(v=>v.toFixed(2)).join(',')}], ${Number(score).toFixed(2)})"
+        style="margin-left:10px;padding:4px 12px;background:#4f46e5;color:white;border:none;border-radius:6px;cursor:pointer;font-size:13px">
+        Повторить
+      </button>
+    </div>`;
   }
 
   document.addEventListener('click', (e) => { if (!e.target.closest('.search-section')) listDiv.style.display = 'none'; });
